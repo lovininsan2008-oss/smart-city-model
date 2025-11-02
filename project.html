@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart City Model</title>
+    <style>
+        body {
+            margin: 0;
+            background: #d3e6ff;
+            font-family: Arial, sans-serif;
+        }
+
+        .map {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Road (Horizontal) */
+        .road-h {
+            position: absolute;
+            top: 45%;
+            left: 0;
+            width: 100%;
+            height: 90px;
+            background: #2f2f2f;
+        }
+
+        /* Road (Vertical) */
+        .road-v {
+            position: absolute;
+            left: 45%;
+            top: 0;
+            width: 90px;
+            height: 100%;
+            background: #2f2f2f;
+        }
+
+        /* Buildings Theme */
+        .building {
+            position: absolute;
+            width: 140px;
+            height: 110px;
+            border-radius: 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Specific Buildings */
+        #hospital { background: #e63946; top: 18%; left: 62%; }
+        #school { background: #3a86ff; top: 65%; left: 20%; }
+        #houses { background: #2a9d8f; top: 15%; left: 15%; width: 160px; height: 130px; }
+
+        /* Cars (Fixed ON road) */
+        .car {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            background: yellow;
+            border-radius: 6px;
+            border: 3px solid black;
+        }
+
+        #car1 { top: 47%; left: 30%; }  /* On horizontal road */
+        #car2 { top: 47%; left: 60%; }  /* On horizontal road */
+        #car3 { top: 30%; left: 47%; transform: rotate(90deg); } /* On vertical road */
+    </style>
+</head>
+
+<body>
+    <div class="map">
+
+        <!-- Roads -->
+        <div class="road-h"></div>
+        <div class="road-v"></div>
+
+        <!-- Buildings -->
+        <div id="hospital" class="building">HOSPITAL</div>
+        <div id="school" class="building">SCHOOL</div>
+        <div id="houses" class="building">HOUSES</div>
+
+        <!-- Cars -->
+        <div id="car1" class="car"></div>
+        <div id="car2" class="car"></div>
+        <div id="car3" class="car"></div>
+
+    </div>
+</body>
+</html>

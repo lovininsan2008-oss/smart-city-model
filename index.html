@@ -1,93 +1,143 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Smart City Model</title>
-    <style>
-        body {
-            margin: 0;
-            background: #d3e6ff;
-            font-family: Arial, sans-serif;
-        }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart City Model</title>
 
-        .map {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-        }
+<style>
+body {
+  margin: 0;
+  background: #dfe8f3;
+  font-family: Arial, sans-serif;
+  overflow-x: hidden;
+}
 
-        /* Road (Horizontal) */
-        .road-h {
-            position: absolute;
-            top: 45%;
-            left: 0;
-            width: 100%;
-            height: 90px;
-            background: #2f2f2f;
-        }
+/* Map container with 3D tilt */
+#map {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  transform: perspective(900px) rotateX(25deg);
+  transform-style: preserve-3d;
+}
 
-        /* Road (Vertical) */
-        .road-v {
-            position: absolute;
-            left: 45%;
-            top: 0;
-            width: 90px;
-            height: 100%;
-            background: #2f2f2f;
-        }
+/* Roads */
+.road {
+  position: absolute;
+  background: #2e2e2e;
+  border: 5px solid #1a1a1a;
+  z-index: 0;
+}
 
-        /* Buildings Theme */
-        .building {
-            position: absolute;
-            width: 140px;
-            height: 110px;
-            border-radius: 10px;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 4px 4px 12px rgba(0,0,0,0.3);
-        }
+/* Main horizontal road */
+#mainRoad {
+  width: 95%;
+  height: 80px;
+  top: 45%;
+  left: 2%;
+}
 
-        /* Specific Buildings */
-        #hospital { background: #e63946; top: 18%; left: 62%; }
-        #school { background: #3a86ff; top: 65%; left: 20%; }
-        #houses { background: #2a9d8f; top: 15%; left: 15%; width: 160px; height: 130px; }
+/* Vertical road */
+#verticalRoad {
+  width: 80px;
+  height: 75%;
+  top: 5%;
+  left: 48%;
+}
 
-        /* Cars (Fixed ON road) */
-        .car {
-            position: absolute;
-            width: 40px;
-            height: 60px;
-            background: yellow;
-            border-radius: 6px;
-            border: 3px solid black;
-        }
+/* Building images */
+.building {
+  position: absolute;
+  width: 120px;
+  cursor: pointer;
+  transform: translateZ(30px);
+}
 
-        #car1 { top: 47%; left: 30%; }  /* On horizontal road */
-        #car2 { top: 47%; left: 60%; }  /* On horizontal road */
-        #car3 { top: 30%; left: 47%; transform: rotate(90deg); } /* On vertical road */
-    </style>
+/* Cars */
+.car {
+  position: absolute;
+  width: 70px;
+  transform: translateZ(35px);
+}
+
+/* Info popup panel */
+#infoPanel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 20px;
+  display: none;
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+}
+
+#closeBtn {
+  float: right;
+  background: black;
+  color: white;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 8px;
+}
+</style>
+
 </head>
-
 <body>
-    <div class="map">
 
-        <!-- Roads -->
-        <div class="road-h"></div>
-        <div class="road-v"></div>
+<div id="map">
 
-        <!-- Buildings -->
-        <div id="hospital" class="building">HOSPITAL</div>
-        <div id="school" class="building">SCHOOL</div>
-        <div id="houses" class="building">HOUSES</div>
+  <!-- Roads -->
+  <div id="mainRoad" class="road"></div>
+  <div id="verticalRoad" class="road"></div>
 
-        <!-- Cars -->
-        <div id="car1" class="car"></div>
-        <div id="car2" class="car"></div>
-        <div id="car3" class="car"></div>
+  <!-- Hospital -->
+  <img src="hospital.png" class="building" style="top:8%; left:40%;" onclick="showInfo('Hospital: Digital Hospital\nDoctors available:\n✔ Dr. Mehta\n✖ Dr. Rana (Off duty)\n✔ Dr. Kapoor')">
 
-    </div>
+  <!-- Mall -->
+  <img src="mall.png" class="building" style="top:60%; left:10%;" onclick="showInfo('Mall: 2 Floors\nFloor 1: Clothes, Food Court\nFloor 2: Electronics, Game Zone')">
+
+  <!-- Fruit Shop -->
+  <img src="fruits.png" class="building" style="top:62%; left:80%;" onclick="showInfo('Fruit Shop: Fresh fruits available daily')">
+
+  <!-- School -->
+  <img src="school.png" class="building" style="top:80%; left:45%;" onclick="showInfo('Digital School: Classes Nursery to 10th')">
+
+  <!-- Houses (H1 scattered layout) -->
+  <img src="houses.png" class="building" style="top:32%; left:20%;" onclick="showInfo('House 1: Sharma Family\n4 Members')">
+  <img src="houses.png" class="building" style="top:35%; left:60%;" onclick="showInfo('House 2: Verma Family\n3 Members')">
+  <img src="houses.png" class="building" style="top:27%; left:28%;" onclick="showInfo('House 3: Singh Family\n5 Members')">
+  <img src="houses.png" class="building" style="top:29%; left:70%;" onclick="showInfo('House 4: Jindal Family\n6 Members')">
+  <img src="houses.png" class="building" style="top:40%; left:30%;" onclick="showInfo('House 5: Chauhan Family\n3 Members')">
+  <img src="houses.png" class="building" style="top:42%; left:68%;" onclick="showInfo('House 6: Sharma Family\n2 Members')">
+  <img src="houses.png" class="building" style="top:37%; left:48%;" onclick="showInfo('House 7: Kapoor Family\n4 Members')">
+
+  <!-- Cars -->
+  <img src="cars.png" class="car" style="top:47%; left:25%;">
+  <img src="cars.png" class="car" style="top:47%; left:60%;">
+  <img src="cars.png" class="car" style="top:20%; left:48%;">
+
+</div>
+
+<!-- Info Panel -->
+<div id="infoPanel">
+  <button id="closeBtn" onclick="closeInfo()">Close</button>
+  <pre id="infoText"></pre>
+</div>
+
+<script>
+function showInfo(text){
+  document.getElementById("infoText").innerText = text;
+  document.getElementById("infoPanel").style.display = "block";
+}
+
+function closeInfo(){
+  document.getElementById("infoPanel").style.display = "none";
+}
+</script>
+
 </body>
 </html>
+

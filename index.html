@@ -3,113 +3,107 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-<title>Digital City — Model Map</title>
+<title>Smart City — Model Map</title>
+<link rel="icon" href="hospital.png">
 <style>
   :root{
-    --bg:#eaf2ff; --card:#fff; --muted:#475569; --accent:#0ea5e9;
+    --bg-a:#eaf2ff; --panel:#ffffff; --muted:#475569; --accent:#0ea5e9; --dark:#0b1220;
   }
   html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial;background:linear-gradient(180deg,#f3f7fb,#eaf2ff);}
-  .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:12px;}
-  .device{width:100%;max-width:440px;border-radius:22px;overflow:hidden;box-shadow:0 20px 60px rgba(2,6,23,0.25);background:#0b2440;color:#fff;}
-  header{padding:14px;text-align:center;background:linear-gradient(180deg,#0b2440,#0f375e);}
-  header h1{margin:0;font-size:18px;letter-spacing:1px}
-  header p{margin:4px 0 0;font-size:12px;opacity:.9}
-  .map-area{padding:12px;background:var(--bg);}
+  .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:14px;}
+  .device{width:100%;max-width:920px;border-radius:16px;overflow:hidden;box-shadow:0 30px 80px rgba(2,6,23,0.18);background:linear-gradient(180deg,#f8fbff,#eef7ff);color:#07203a;}
+  header{padding:14px 18px;text-align:center;background:linear-gradient(180deg,#07203a,#093b5a); color:#fff}
+  header h1{margin:0;font-size:20px;letter-spacing:1px}
+  header p{margin:6px 0 0;font-size:12px;opacity:.9}
+  .map-area{padding:14px;background:var(--bg-a);}
+
   /* map container */
-  .map {width:100%;height:700px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#dbeafe,#e6f0ff);position:relative;touch-action:manipulation;}
-  /* camera transform */
-  #camera{width:100%;height:100%;transform-origin:50% 50%;transition:transform 700ms cubic-bezier(.2,.9,.2,1);position:relative;}
-  /* building panels using images (positioned to match model) */
-  .place{position:absolute;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(2,6,23,0.08);background:#fff;cursor:pointer;}
-  .place img{width:100%;height:100%;object-fit:cover;display:block}
-  /* positions tuned to match your model layout (hospital top, houses bottom-right, mall bottom-left/pink area accordingly) */
-  #hospital { left:6%; top:6%; width:42%; height:28%; }
-  #mall    { right:6%; top:6%; width:42%; height:28%; }
-  #school  { left:6%; bottom:6%; width:42%; height:36%; }
-  /* houses group: we will display 7 small house images inside the 'houses-box' */
-  #houses-box { right:6%; bottom:6%; width:42%; height:36%; padding:8px; box-sizing:border-box; display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start; background:linear-gradient(180deg,#fff7ed,#fff5e7); border-radius:12px; }
-  .house-thumb { width:28%; height:36%; border-radius:8px; overflow:hidden; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(2,6,23,0.06); }
+  .map {width:100%;height:640px;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#dbeafe,#e6f0ff);position:relative;touch-action:manipulation;}
+  /* camera transform for zooming */
+  #camera{width:100%;height:100%;transform-origin:50% 50%;transition:transform 520ms cubic-bezier(.2,.9,.2,1);position:relative;}
+
+  /* place blocks (images) */
+  .place{position:absolute;border-radius:12px;overflow:hidden;box-shadow:0 8px 22px rgba(2,6,23,0.06);background:var(--panel);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .place img{width:100%;height:100%;object-fit:contain;display:block;background:transparent}
+
+  /* exact positions tuned to match your physical model (hospital top, houses bottom-right etc.) */
+  /* coordinate system: use percentages so it stays responsive */
+  #hospital { left:6%; top:6%; width:40%; height:28%; }
+  #mall     { left:52%; top:6%; width:40%; height:28%; } /* mall/pink area top-right in physical model */
+  #school   { left:6%; bottom:6%; width:40%; height:35%; }
+  #houses-box { right:6%; bottom:6%; width:40%; height:35%; padding:8px; box-sizing:border-box; background:linear-gradient(180deg,#fff7ed,#fff5e7); border-radius:12px; display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start; }
+  /* house thumbnails inside houses-box */
+  .house-thumb { width:30%; height:31%; border-radius:8px; overflow:hidden; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(2,6,23,0.06); }
   .house-thumb img{max-width:100%; max-height:100%; object-fit:contain; display:block; }
-  /* roads rendered as SVG overlay - main road vertical + horizontal crossing in center */
-  svg.roads { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; }
-  /* overlay panel area */
-  .overlay{position:absolute; left:0; right:0; bottom:0; padding:12px; pointer-events:none;}
-  .panel{pointer-events:auto;background:var(--card);border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(2,6,23,0.08); color:#0b1220;}
+
+  /* center cross intersection disc (visual only) */
+  #center-disc { position:absolute; left:36%; top:40%; width:28%; height:22%; border-radius:14px; background:rgba(255,255,255,0.95); box-shadow:0 10px 30px rgba(2,6,23,0.05); pointer-events:none; display:flex;align-items:center;justify-content:center; }
+
+  /* road image (covering main crossing area horizontally) */
+  .road-h { position:absolute; left:2%; top:40%; width:96%; height:26%; pointer-events:none; opacity:1; display:block; object-fit:cover; filter:brightness(0.95); }
+  .road-v { position:absolute; left:46%; top:2%; width:12%; height:96%; pointer-events:none; opacity:1; transform-origin:center; filter:brightness(0.95); }
+
+  /* smaller inner lanes (visual only) */
+  .lane { position:absolute; background:#0b1220; border-radius:6px; opacity:0.95; }
+
+  /* cars: place them fixed on road; we will not animate so they don't float */
+  .car { position:absolute; width:72px; height:auto; transform-origin:center center; z-index:40; }
+  .car img{width:100%;height:auto; display:block;}
+
+  /* overlay panel area (popups) */
+  .overlay{position:absolute; left:0; right:0; bottom:10px; padding:14px; pointer-events:none;}
+  .panel{pointer-events:auto;background:var(--panel);border-radius:12px;padding:12px;box-shadow:0 10px 30px rgba(2,6,23,0.08); color:#0b1220; max-width:760px; margin:0 auto;}
   .row{display:flex;gap:8px;align-items:center}
-  .btn{padding:8px 10px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:700}
+  .btn{padding:8px 12px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:700}
   .btn.secondary{background:#f1f5f9;color:#0b1220;border:1px solid #e2e8f0}
   .muted{color:var(--muted);font-size:13px}
-  .card{padding:10px;border-radius:10px;background:#fff;border:1px solid #eef2ff}
-  .close-x{position:absolute;right:12px;top:12px;background:#fff;padding:6px;border-radius:8px;border:none}
-  /* cars animated along invisible SVG paths using SMIL animateMotion (supported in modern mobile chrome) */
-  .car-img{width:52px;height:32px;transform-origin:center center;}
-  /* small inner roads for houses (visual only) */
-  .lane{position:absolute;background:#0b1220;border-radius:4px}
-  /* responsiveness */ 
-  @media (max-width:420px){ .map{height:640px} }
+  .card{padding:10px;border-radius:10px;background:#fff;border:1px solid #eef2ff;margin-bottom:8px}
+  .close-x{position:absolute;right:12px;top:12px;background:#fff;padding:6px;border-radius:8px;border:none;cursor:pointer}
+
+  /* small helpers */
+  .titleRow{display:flex;align-items:center;gap:12px}
+  .titleText{font-weight:800;font-size:18px}
+  /* responsive */
+  @media (max-width:920px){ .device{max-width:420px} .map{height:600px} }
+  @media (max-width:480px){ .map{height:560px} #hospital,#mall,#school,#houses-box{width:44%} #center-disc{left:34%} .house-thumb{width:48%;height:46%} .car{width:56px} }
 </style>
 </head>
 <body>
   <div class="wrap">
     <div class="device" role="application" aria-label="Digital City App">
       <header>
-        <h1>SMART CITY — YOUR MODEL</h1>
-        <p>Tap any area to zoom — Hospital on top, Houses bottom-right</p>
+        <div class="titleRow">
+          <h1 style="margin:0;color:#fff;font-size:18px">SMART CITY — DIGITAL MODEL</h1>
+        </div>
+        <p style="margin:6px 0 0;color:rgba(255,255,255,0.9);font-size:13px">Tap an area to zoom & open details. Hospital top — Houses bottom-right.</p>
       </header>
 
       <div class="map-area">
-        <div id="map" class="map">
+        <div id="map" class="map" aria-hidden="false">
           <div id="camera">
-            <!-- Background grass/texture -->
-            <div style="position:absolute;left:0;top:0;right:0;bottom:0;background:linear-gradient(180deg,#dbeafe,#e6f0ff)"></div>
 
-            <!-- SVG roads overlay (black roads per your choice) -->
-            <svg class="roads" viewBox="0 0 600 700" preserveAspectRatio="xMidYMid meet">
-              <!-- black roads -->
-              <!-- vertical road -->
-              <rect x="240" y="-10" width="120" height="720" rx="14" fill="#0b1220" />
-              <!-- horizontal road crossing -->
-              <rect x="-10" y="320" width="620" height="80" rx="14" fill="#0b1220" />
-              <!-- dashed lane markings vertical -->
-              <g fill="#fff">
-                <!-- vertical middle dashes -->
-                <rect x="299" y="20" width="6" height="28" rx="3"></rect>
-                <rect x="299" y="110" width="6" height="28" rx="3"></rect>
-                <rect x="299" y="200" width="6" height="28" rx="3"></rect>
-                <rect x="299" y="290" width="6" height="28" rx="3"></rect>
-                <rect x="299" y="380" width="6" height="28" rx="3"></rect>
-                <rect x="299" y="470" width="6" height="28" rx="3"></rect>
-                <rect x="299" y="560" width="6" height="28" rx="3"></rect>
-              </g>
+            <!-- road images (horizontal + vertical) -->
+            <img src="road.png" alt="road" class="road-h" />
+            <img src="road.png" alt="road-v" class="road-v" style="transform: rotate(90deg)"/>
 
-              <!-- small house lanes (thin roads) near houses area -->
-              <rect x="380" y="480" width="120" height="12" rx="6" fill="#0b1220" />
-              <rect x="380" y="540" width="120" height="12" rx="6" fill="#0b1220" />
-              <!-- curved flyover path (curved elevated bridge) -->
-              <path id="flyPath" d="M40 260 C200 200, 380 180, 560 240" fill="none" stroke="none" />
-              <!-- draw flyover as slightly lighter elevated slab -->
-              <path d="M36 256 C196 196, 376 176, 556 236" fill="none" stroke="#cbd5e1" stroke-width="26" stroke-linecap="round" opacity="0.98" />
-              <path d="M60 268 C210 210, 390 198, 540 246" fill="none" stroke="#94a3b8" stroke-width="10" stroke-linecap="round" opacity="0.95" />
-            </svg>
+            <!-- center disc (visual; matches the white disc in your physical model) -->
+            <div id="center-disc" aria-hidden="true"></div>
 
-            <!-- Hospital (top) -->
+            <!-- PLACES -->
             <div id="hospital" class="place" data-key="hospital" title="Digital Hospital (tap)">
               <img src="hospital.png" alt="Hospital">
             </div>
 
-            <!-- Mall (top-right/pink area in your model) -->
-            <div id="mall" class="place" data-key="mall" title="Mall & Fruits">
+            <div id="mall" class="place" data-key="mall" title="Mall & Fruit Shop">
               <img src="mall.png" alt="Mall">
             </div>
 
-            <!-- School (bottom-left in model) -->
             <div id="school" class="place" data-key="school" title="Digital School">
               <img src="school.png" alt="School">
             </div>
 
-            <!-- Houses area box - we will render 7 houses thumbnails -->
-            <div id="houses-box" class="place" data-key="houses" title="Houses (tap to open)">
-              <!-- 7 houses: use houses.png for thumbnails (user can supply a sprite or same image) -->
+            <!-- houses group (7 thumbnails placed similar to your model) -->
+            <div id="houses-box" class="place" data-key="houses" title="Residential Block (tap)">
               <div class="house-thumb"><img src="houses.png" alt="H1"></div>
               <div class="house-thumb"><img src="houses.png" alt="H2"></div>
               <div class="house-thumb"><img src="houses.png" alt="H3"></div>
@@ -119,58 +113,28 @@
               <div class="house-thumb"><img src="houses.png" alt="H7"></div>
             </div>
 
-            <!-- small inner lanes visually near houses -->
-            <div class="lane" style="right:46%; bottom:30%; width:120px; height:8px;"></div>
-            <div class="lane" style="right:46%; bottom:22%; width:120px; height:8px;"></div>
-
-            <!-- round center (we keep the center white disc as in your model but not a roundabout; clickable area removed if you didn't want it) -->
-            <div id="center-disc" style="position:absolute; left:40%; top:42%; width:20%; height:18%; border-radius:50%; display:flex;align-items:center;justify-content:center; background:#ffffff; box-shadow:0 8px 24px rgba(2,6,23,0.06); pointer-events:none;">
+            <!-- place fruits shop as a separate small item near mall (pink area) -->
+            <div style="position:absolute; left:57%; top:34%; width:20%; height:16%; border-radius:12px; overflow:hidden; box-shadow:0 8px 22px rgba(2,6,23,0.06); background:#fff; display:flex;align-items:center;justify-content:center; cursor:pointer" id="fruits" data-key="fruits" title="Fruits Shop">
+              <img src="fruits.png" alt="Fruits" style="width:100%; height:100%; object-fit:contain;">
             </div>
 
-            <!-- Cars: realistic small car images that animate along the map; these <image> tags will be animated using SMIL animateMotion along defined paths -->
-            <svg viewBox="0 0 600 700" style="position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none;">
-              <defs>
-                <path id="pathMain1" d="M-60 340 C80 340, 200 340, 620 340" />
-                <path id="pathMain2" d="M620 380 C420 380, 300 380, -60 380" />
-                <path id="pathFly"   d="M40 260 C200 200, 380 180, 560 240" />
-              </defs>
+            <!-- small inner lanes near houses (visual only) -->
+            <div class="lane" style="right:48%; bottom:34%; width:110px; height:10px;"></div>
+            <div class="lane" style="right:48%; bottom:26%; width:110px; height:10px;"></div>
 
-              <!-- car on lower road, moves L->R -->
-              <g id="car1" transform="translate(-60,340)">
-                <image xlink:href="cars.png" class="car-img" x="-26" y="-16" width="60" height="36" />
-                <animateMotion dur="9s" repeatCount="indefinite">
-                  <mpath xlink:href="#pathMain1" />
-                </animateMotion>
-              </g>
+            <!-- CARS (fixed on road; not animated; grounded) -->
+            <div class="car" style="left:18%; top:54%; z-index:42;">
+              <img src="cars.png" alt="car1">
+            </div>
+            <div class="car" style="left:58%; top:54%; transform:scaleX(-1); z-index:42;">
+              <img src="cars.png" alt="car2">
+            </div>
+            <div class="car" style="left:46%; top:12%; z-index:42;">
+              <img src="cars.png" alt="car3">
+            </div>
 
-              <!-- car on lower road, R->L -->
-              <g id="car2" transform="translate(620,380)">
-                <image xlink:href="cars.png" class="car-img" x="-26" y="-16" width="60" height="36" transform="scale(-1,1)"/>
-                <animateMotion dur="8.2s" begin="0.6s" repeatCount="indefinite">
-                  <mpath xlink:href="#pathMain2" />
-                </animateMotion>
-              </g>
-
-              <!-- car on flyover (curved) -->
-              <g id="carFly" transform="translate(40,260)">
-                <image xlink:href="cars.png" class="car-img" x="-26" y="-22" width="60" height="36" />
-                <animateMotion dur="10s" begin="1s" repeatCount="indefinite">
-                  <mpath xlink:href="#pathFly" />
-                </animateMotion>
-              </g>
-
-              <!-- a few more cars -->
-              <g id="car3" transform="translate(100,360)">
-                <image xlink:href="cars.png" class="car-img" x="-26" y="-16" width="56" height="34" />
-                <animateMotion dur="12s" begin="1.3s" repeatCount="indefinite">
-                  <mpath xlink:href="#pathMain1" />
-                </animateMotion>
-              </g>
-            </svg>
-
-          </div> <!-- end camera -->
-
-          <!-- overlay area for popups -->
+          </div> <!-- camera -->
+          <!-- overlay area: popups inserted here -->
           <div class="overlay" id="overlay"></div>
         </div>
       </div>
@@ -178,22 +142,23 @@
   </div>
 
 <script>
-/* App logic:
- - Tapping hotspots zooms camera into area and opens an interactive panel
- - Hospital panel includes doctor availability & booking (persisted to localStorage)
- - Mall panel with 2 floors, School with rooms, Houses with 7 entries and detail cards
- - Reset by tapping outside panels
-*/
+/* -------------------------
+   Interactive App JS
+   - Zoom to place & open overlay panels
+   - Hospital: doctors + booking saved to localStorage
+   - Mall: 2-floor shop list
+   - School: rooms demo
+   - Houses: 7 entries with details
+---------------------------*/
 
-// Utility: save/load
-const KEY = 'digital-city-v1';
-function loadState(){ try{ return JSON.parse(localStorage.getItem(KEY) || '{}'); }catch(e){return{}} }
-function saveState(st){ localStorage.setItem(KEY, JSON.stringify(st)); }
+const KEY = 'digital-city-smart-v1';
+function loadState(){ try{ return JSON.parse(localStorage.getItem(KEY)||'{}') } catch(e){ return {} } }
+function saveState(s){ localStorage.setItem(KEY, JSON.stringify(s)) }
 
 let state = loadState();
 if(!state.doctors){
   state.doctors = [
-    {id:'D1', name:'Dr. Mehta', spec:'General Physician', available:true},
+    {id:'D1', name:'Dr. Mehta', spec:'General', available:true},
     {id:'D2', name:'Dr. Kaur', spec:'Pediatrics', available:false},
     {id:'D3', name:'Dr. Arjun', spec:'Orthopedics', available:true},
     {id:'D4', name:'Dr. Rao', spec:'Radiology', available:false},
@@ -204,14 +169,16 @@ if(!state.doctors){
 
 const camera = document.getElementById('camera');
 const overlay = document.getElementById('overlay');
+
 const hotspots = {
   hospital: document.getElementById('hospital'),
   mall: document.getElementById('mall'),
   school: document.getElementById('school'),
-  houses: document.getElementById('houses-box')
+  houses: document.getElementById('houses-box'),
+  fruits: document.getElementById('fruits')
 };
 
-// camera zoom function: center element and scale so element fills ~70%
+/* Zoom helper: center element and scale so element fills ~70% of view */
 function zoomTo(el){
   const camRect = camera.getBoundingClientRect();
   const elRect = el.getBoundingClientRect();
@@ -219,17 +186,21 @@ function zoomTo(el){
   const cy = (elRect.top + elRect.bottom)/2 - camRect.top;
   const camW = camRect.width, camH = camRect.height;
   const elW = elRect.width, elH = elRect.height;
-  const scale = Math.min(camW / (elW * 1.35), camH / (elH * 1.35), 2.6);
+  const scale = Math.min(camW / (elW * 1.3), camH / (elH * 1.3), 2.4);
   const tx = (camW/2 - cx);
   const ty = (camH/2 - cy);
   camera.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
   overlay.style.pointerEvents = 'auto';
 }
 
-// reset zoom
-function resetZoom(){ camera.style.transform = 'translate(0px, 0px) scale(1)'; overlay.innerHTML=''; overlay.style.pointerEvents='none'; }
+/* reset */
+function resetZoom(){
+  camera.style.transform = 'translate(0px, 0px) scale(1)';
+  overlay.innerHTML = '';
+  overlay.style.pointerEvents = 'none';
+}
 
-// click handlers for hotspots (open panel after short delay to match zoom)
+/* attach hotspot handlers */
 Object.keys(hotspots).forEach(k=>{
   const el = hotspots[k];
   el.addEventListener('click', (ev)=>{
@@ -240,27 +211,36 @@ Object.keys(hotspots).forEach(k=>{
       if(k==='mall') openMallPanel();
       if(k==='school') openSchoolPanel();
       if(k==='houses') openHousesPanel();
-    }, 420);
+      if(k==='fruits') openFruitsPanel();
+    }, 260);
   });
 });
 
-// click outside to reset
+/* tap outside map to reset */
 document.getElementById('map').addEventListener('click', (e)=>{
   const inside = overlay.contains(e.target) || camera.contains(e.target);
   if(!inside) resetZoom();
 });
 
-/* ----- Hospital Panel (doctors + booking) ----- */
+/* small toast */
+function toast(msg){
+  const t = document.createElement('div'); t.className='panel'; t.style.position='fixed'; t.style.left='50%'; t.style.transform='translateX(-50%)'; t.style.bottom='22px'; t.style.padding='10px 14px'; t.style.borderRadius='10px'; t.style.background='linear-gradient(180deg,#0b1220,#093b5a)'; t.style.color='#fff'; t.style.zIndex=9999; t.innerText=msg;
+  document.body.appendChild(t);
+  setTimeout(()=> t.style.opacity='0', 1500);
+  setTimeout(()=> t.remove(), 2200);
+}
+
+/* ----------------- Hospital Panel ----------------- */
 function openHospitalPanel(){
   overlay.innerHTML = '';
   const panel = document.createElement('div'); panel.className='panel';
   panel.innerHTML = `
     <button class="close-x" aria-label="Close">✕</button>
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-weight:800;font-size:16px">Digital Hospital</div><div class="muted">Clinic • Emergency • Medical Clinic</div></div>
+      <div><div style="font-weight:800;font-size:16px">Digital Hospital</div><div class="muted">Clinic • Emergency • Diagnostics</div></div>
       <div><button id="bookApt" class="btn">Book Appointment</button></div>
     </div>
-    <div id="docList" style="margin-top:10px"></div>
+    <div id="docList" style="margin-top:12px"></div>
   `;
   overlay.appendChild(panel);
   panel.querySelector('.close-x').addEventListener('click', resetZoom);
@@ -268,135 +248,97 @@ function openHospitalPanel(){
   renderDoctorList();
 }
 function renderDoctorList(){
-  const list = document.getElementById('docList');
-  list.innerHTML = '';
+  const list = document.getElementById('docList'); list.innerHTML='';
   state.doctors.forEach(d=>{
     const card = document.createElement('div'); card.className='card'; card.style.display='flex'; card.style.justifyContent='space-between'; card.style.alignItems='center';
     card.innerHTML = `<div><div style="font-weight:700">${d.name}</div><div class="muted">${d.spec}</div></div><div style="text-align:right"><div style="margin-bottom:6px">${d.available?'<span style="color:#059669;font-weight:700">Available</span>':'<span style="color:#ef4444;font-weight:700">Unavailable</span>'}</div><button class="btn secondary" data-id="${d.id}">${d.available?'Set Busy':'Set Available'}</button></div>`;
     list.appendChild(card);
-    card.querySelector('button').addEventListener('click', ()=> {
-      toggleDoctor(d.id);
-    });
+    card.querySelector('button').addEventListener('click', ()=> { toggleDoctor(d.id); });
   });
 }
 function toggleDoctor(id){
-  state.doctors = state.doctors.map(d=> d.id===id ? {...d, available: !d.available} : d);
+  state.doctors = state.doctors.map(d=> d.id===id ? {...d, available: !d.available} : d );
   saveState(state);
   renderDoctorList();
   toast('Doctor availability updated');
 }
 
-/* booking flow */
+/* Booking */
 function openBookingForm(){
   overlay.innerHTML = '';
   const p = document.createElement('div'); p.className='panel';
   p.innerHTML = `
     <button class="close-x">✕</button>
     <div style="font-weight:800;font-size:16px">Book Appointment</div>
-    <label for="docSel">Doctor</label>
-    <select id="docSel" style="margin-top:6px"></select>
-    <label for="t" style="margin-top:8px">Time</label>
-    <input id="t" type="datetime-local"/>
-    <label for="notes" style="margin-top:8px">Notes</label>
-    <input id="notes" type="text" placeholder="Reason (optional)"/>
-    <div style="display:flex;gap:8px;margin-top:10px"><button id="confirm" class="btn">Confirm</button><button id="cancel" class="btn secondary">Cancel</button></div>
+    <label style="margin-top:8px">Doctor</label>
+    <select id="docSel" style="margin-top:6px;padding:8px;border-radius:8px;width:100%"></select>
+    <label style="margin-top:8px">Date & Time</label>
+    <input id="t" type="datetime-local" style="margin-top:6px;padding:8px;border-radius:8px;width:100%"/>
+    <label style="margin-top:8px">Notes</label>
+    <input id="notes" type="text" placeholder="Optional" style="margin-top:6px;padding:8px;border-radius:8px;width:100%"/>
+    <div style="display:flex;gap:8px;margin-top:12px"><button id="confirm" class="btn">Confirm</button><button id="cancel" class="btn secondary">Cancel</button></div>
   `;
   overlay.appendChild(p);
   p.querySelector('.close-x').addEventListener('click', resetZoom);
   const sel = p.querySelector('#docSel');
-  state.doctors.forEach(d=>{
-    const o = document.createElement('option'); o.value=d.id; o.textContent = `${d.name} — ${d.spec} ${d.available?'(Available)':''}`;
-    sel.appendChild(o);
-  });
+  state.doctors.forEach(d=>{ const o = document.createElement('option'); o.value=d.id; o.textContent = `${d.name} — ${d.spec} ${d.available?'(Available)':''}`; sel.appendChild(o); });
   p.querySelector('#cancel').addEventListener('click', resetZoom);
   p.querySelector('#confirm').addEventListener('click', ()=>{
-    const docId = sel.value;
-    const time = p.querySelector('#t').value;
-    if(!time){ alert('Select time'); return; }
+    const docId = sel.value; const time = p.querySelector('#t').value;
+    if(!time){ alert('Please select time'); return; }
     const doc = state.doctors.find(x=>x.id===docId);
     const apt = { id:'A'+Date.now(), docId, doctorName:doc.name, time, notes: p.querySelector('#notes').value||'' };
-    state.appointments = state.appointments || [];
-    state.appointments.push(apt);
-    saveState(state);
+    state.appointments = state.appointments || []; state.appointments.push(apt); saveState(state);
     toast('Appointment booked ✓');
-    setTimeout(()=> openAppointmentSummary(apt), 300);
+    setTimeout(()=> openAppointmentSummary(apt), 360);
   });
 }
 function openAppointmentSummary(apt){
-  overlay.innerHTML='';
-  const p = document.createElement('div'); p.className='panel';
+  overlay.innerHTML=''; const p=document.createElement('div'); p.className='panel';
   p.innerHTML = `<button class="close-x">✕</button><div style="font-weight:800">Appointment Confirmed</div><div class="muted" style="margin-top:8px">Doctor: <strong>${apt.doctorName}</strong><br/>Time: <strong>${new Date(apt.time).toLocaleString()}</strong></div><div style="display:flex;gap:8px;margin-top:10px"><button id="ok" class="btn">OK</button><button id="viewAll" class="btn secondary">View All</button></div>`;
-  overlay.appendChild(p);
-  p.querySelector('.close-x').addEventListener('click', resetZoom);
+  overlay.appendChild(p); p.querySelector('.close-x').addEventListener('click', resetZoom);
   p.querySelector('#ok').addEventListener('click', resetZoom);
   p.querySelector('#viewAll').addEventListener('click', openAppointmentsList);
 }
 function openAppointmentsList(){
-  overlay.innerHTML='';
-  const p = document.createElement('div'); p.className='panel';
+  overlay.innerHTML=''; const p=document.createElement('div'); p.className='panel';
   p.innerHTML = `<button class="close-x">✕</button><div style="font-weight:800">My Appointments</div><div id="apts" style="margin-top:8px"></div><div style="display:flex;gap:8px;margin-top:10px"><button id="back" class="btn secondary">Back</button></div>`;
-  overlay.appendChild(p);
-  p.querySelector('.close-x').addEventListener('click', resetZoom);
-  p.querySelector('#back').addEventListener('click', resetZoom);
-  const list = p.querySelector('#apts');
-  const appts = (state.appointments||[]).slice().reverse();
+  overlay.appendChild(p); p.querySelector('.close-x').addEventListener('click', resetZoom); p.querySelector('#back').addEventListener('click', resetZoom);
+  const list = p.querySelector('#apts'); const appts = (state.appointments||[]).slice().reverse();
   if(appts.length===0){ list.innerHTML='<div class="muted">No appointments</div>'; return; }
-  appts.forEach(a=>{
-    const c = document.createElement('div'); c.className='card'; c.style.display='flex'; c.style.justifyContent='space-between'; c.style.alignItems='center'; c.innerHTML = `<div><div style="font-weight:700">${a.doctorName}</div><div class="muted">${new Date(a.time).toLocaleString()}</div></div><div><button class="btn secondary" data-id="${a.id}">Cancel</button></div>`;
-    list.appendChild(c);
-    c.querySelector('button').addEventListener('click', ()=>{
-      if(!confirm('Cancel appointment?')) return;
-      state.appointments = state.appointments.filter(x=>x.id!==a.id);
-      saveState(state);
-      toast('Canceled');
-      openAppointmentsList();
-    });
-  });
+  appts.forEach(a=>{ const c=document.createElement('div'); c.className='card'; c.style.display='flex'; c.style.justifyContent='space-between'; c.style.alignItems='center'; c.innerHTML = `<div><div style="font-weight:700">${a.doctorName}</div><div class="muted">${new Date(a.time).toLocaleString()}</div></div><div><button class="btn secondary" data-id="${a.id}">Cancel</button></div>`; list.appendChild(c); c.querySelector('button').addEventListener('click', ()=>{ if(!confirm('Cancel appointment?')) return; state.appointments = state.appointments.filter(x=>x.id!==a.id); saveState(state); toast('Canceled'); openAppointmentsList(); }); });
 }
 
-/* ----- Mall panel (2 floors) ----- */
+/* ----------------- Mall ----------------- */
 let mallFloor = 1;
 function openMallPanel(){
-  overlay.innerHTML='';
-  const p = document.createElement('div'); p.className='panel';
-  p.innerHTML = `<button class="close-x">✕</button><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:800">Digital Mall</div><div class="muted">Floor ${mallFloor}</div></div><div><button id="switchFloor" class="btn">Switch Floor</button></div></div><div id="shops" style="margin-top:10px"></div>`;
-  overlay.appendChild(p);
-  p.querySelector('.close-x').addEventListener('click', resetZoom);
-  p.querySelector('#switchFloor').addEventListener('click', ()=>{ mallFloor = mallFloor===1?2:1; p.querySelector('.muted').textContent = 'Floor ' + mallFloor; renderShops();});
-  function renderShops(){
-    const cont = p.querySelector('#shops'); cont.innerHTML='';
-    const floors = {
-      1: ['Supermarket','Clothing','Fast Food','Fruits Shop'],
-      2: ['Cinema','Electronics','Gaming Zone','Cafeteria']
-    };
-    floors[mallFloor].forEach(name=>{
-      const c = document.createElement('div'); c.className='card'; c.style.display='flex'; c.style.justifyContent='space-between'; c.style.alignItems='center'; c.innerHTML = `<div><div style="font-weight:700">${name}</div><div class="muted">Open 10:00 - 22:00</div></div><div><button class="btn" data-name="${name}">Open</button></div>`;
-      cont.appendChild(c);
-      c.querySelector('button').addEventListener('click', ()=> alert(name + ' — demo info'));
-    });
-  }
+  overlay.innerHTML=''; const p=document.createElement('div'); p.className='panel';
+  p.innerHTML = `<button class="close-x">✕</button><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:800">Digital Mall</div><div class="muted">Floor ${mallFloor}</div></div><div><button id="switchFloor" class="btn">Switch Floor</button></div></div><div id="shops" style="margin-top:12px"></div>`;
+  overlay.appendChild(p); p.querySelector('.close-x').addEventListener('click', resetZoom);
+  p.querySelector('#switchFloor').addEventListener('click', ()=>{ mallFloor = mallFloor===1?2:1; p.querySelector('.muted').textContent = 'Floor ' + mallFloor; renderShops(); });
+  function renderShops(){ const cont = p.querySelector('#shops'); cont.innerHTML=''; const floors = {1: ['Supermarket','Clothing','Fast Food','Fruits Shop'], 2: ['Cinema','Electronics','Gaming','Cafeteria'] }; floors[mallFloor].forEach(name=>{ const c=document.createElement('div'); c.className='card'; c.style.display='flex'; c.style.justifyContent='space-between'; c.style.alignItems='center'; c.innerHTML = `<div><div style="font-weight:700">${name}</div><div class="muted">Open 10:00 - 22:00</div></div><div><button class="btn" data-name="${name}">Open</button></div>`; cont.appendChild(c); c.querySelector('button').addEventListener('click', ()=> alert(name + ' — demo info')); }); }
   renderShops();
 }
 
-/* ----- School panel ----- */
-function openSchoolPanel(){
-  overlay.innerHTML='';
-  const p = document.createElement('div'); p.className='panel';
-  p.innerHTML = `<button class="close-x">✕</button><div style="font-weight:800">Digital School</div><div class="muted">Smart classrooms • Labs • Library</div><div id="rooms" style="margin-top:10px"></div>`;
-  overlay.appendChild(p);
-  p.querySelector('.close-x').addEventListener('click', resetZoom);
-  const rooms = ['Principal Office','Classroom 1','Computer Lab','Library','Playground'];
-  const cont = p.querySelector('#rooms');
-  rooms.forEach(r=>{
-    const c = document.createElement('div'); c.className='card'; c.innerHTML = `<div style="font-weight:700">${r}</div><div class="muted">Tap to view schedule</div><div style="margin-top:8px"><button class="btn" data-room="${r}">Open</button></div>`;
-    cont.appendChild(c);
-    c.querySelector('button').addEventListener('click', ()=> alert(r + ' schedule (demo)'));
-  });
+/* --------------- Fruits ---------------- */
+function openFruitsPanel(){
+  overlay.innerHTML=''; const p=document.createElement('div'); p.className='panel';
+  p.innerHTML = `<button class="close-x">✕</button><div style="font-weight:800">Fresh Fruits Shop</div><div class="muted">Open daily • Fresh stock</div><div style="margin-top:8px"><button class="btn" onclick="alert('Fruits — demo')">View Items</button></div>`;
+  overlay.appendChild(p); p.querySelector('.close-x').addEventListener('click', resetZoom);
 }
 
-/* ----- Houses panel (7 houses) ----- */
+/* --------------- School ---------------- */
+function openSchoolPanel(){
+  overlay.innerHTML=''; const p=document.createElement('div'); p.className='panel';
+  p.innerHTML = `<button class="close-x">✕</button><div style="font-weight:800">Digital School</div><div class="muted">Smart classrooms • Labs • Library</div><div id="rooms" style="margin-top:12px"></div>`;
+  overlay.appendChild(p); p.querySelector('.close-x').addEventListener('click', resetZoom);
+  const rooms = ['Principal Office','Classroom A','Computer Lab','Library','Playground'];
+  const cont = p.querySelector('#rooms'); rooms.forEach(r=>{ const c=document.createElement('div'); c.className='card'; c.innerHTML = `<div style="font-weight:700">${r}</div><div class="muted">Tap to view schedule</div><div style="margin-top:8px"><button class="btn" data-room="${r}">Open</button></div>`; cont.appendChild(c); c.querySelector('button').addEventListener('click', ()=> alert(r + ' schedule (demo)')); });
+}
+
+/* --------------- Houses ----------------- */
 const HOUSES = [
-  {id:'H1', name:'Sharma Residence', members:['Aman (28)','Riya (26)'], notes:'Has a small garden'},
+  {id:'H1', name:'Sharma Residence', members:['Aman (28)','Riya (26)'], notes:'Small garden'},
   {id:'H2', name:'Verma Family', members:['Mr.Verma','Mrs.Verma','Karan (6)'], notes:'Teacher family'},
   {id:'H3', name:'Singh House', members:['Anjali (32)','Rohit (30)'], notes:'Scooter parked'},
   {id:'H4', name:'Patel Home', members:['Neeta (45)','Suresh (48)','Tina (18)'], notes:'Small shop owner'},
@@ -404,38 +346,22 @@ const HOUSES = [
   {id:'H6', name:'Das Cottage', members:['Gopal (60)'], notes:'Retired'},
   {id:'H7', name:'Roy Family', members:['Sona (34)','Ravi (36)','Maya (6)'], notes:'Extra house in free space'}
 ];
+
 function openHousesPanel(){
-  overlay.innerHTML='';
-  const p = document.createElement('div'); p.className='panel';
-  p.innerHTML = `<button class="close-x">✕</button><div style="font-weight:800">Residential Block</div><div class="muted">7 houses — tap a house for details</div><div style="display:flex;gap:8px;margin-top:10px"><div id="list" style="width:40%;display:grid;gap:8px"></div><div id="detail" style="flex:1"></div></div>`;
-  overlay.appendChild(p);
-  p.querySelector('.close-x').addEventListener('click', resetZoom);
+  overlay.innerHTML=''; const p=document.createElement('div'); p.className='panel';
+  p.innerHTML = `<button class="close-x">✕</button><div style="font-weight:800">Residential Block</div><div class="muted">7 houses — tap a house for details</div><div style="display:flex;gap:8px;margin-top:12px"><div id="list" style="width:40%;display:grid;gap:8px"></div><div id="detail" style="flex:1"></div></div>`;
+  overlay.appendChild(p); p.querySelector('.close-x').addEventListener('click', resetZoom);
   const list = p.querySelector('#list'), detail = p.querySelector('#detail');
-  HOUSES.forEach(h=>{
-    const b = document.createElement('button'); b.className='card'; b.style.textAlign='left';
-    b.innerHTML = `<div style="font-weight:700">${h.name}</div><div class="muted">${h.members.length} members</div>`;
-    list.appendChild(b);
-    b.addEventListener('click', ()=> {
-      detail.innerHTML = `<div class="card"><div style="font-weight:800">${h.name}</div><div style="margin-top:6px"><strong>Members:</strong><ul style="margin-top:6px">${h.members.map(m=>'<li>'+m+'</li>').join('')}</ul></div><div style="margin-top:8px"><strong>Notes:</strong> ${h.notes}</div><div style="margin-top:8px"><button class="btn" id="msg-${h.id}">Message</button></div></div>`;
-      detail.querySelector('#msg-'+h.id).addEventListener('click', ()=> alert('Message demo to ' + h.name));
-    });
-  });
+  HOUSES.forEach(h=>{ const b=document.createElement('button'); b.className='card'; b.style.textAlign='left'; b.innerHTML = `<div style="font-weight:700">${h.name}</div><div class="muted">${h.members.length} members</div>`; list.appendChild(b); b.addEventListener('click', ()=> { detail.innerHTML = `<div class="card"><div style="font-weight:800">${h.name}</div><div style="margin-top:6px"><strong>Members:</strong><ul style="margin-top:6px">${h.members.map(m=>'<li>'+m+'</li>').join('')}</ul></div><div style="margin-top:8px"><strong>Notes:</strong> ${h.notes}</div><div style="margin-top:8px"><button class="btn" id="msg-${h.id}">Message</button></div></div>`; detail.querySelector('#msg-'+h.id).addEventListener('click', ()=> alert('Message demo to ' + h.name)); }); });
 }
 
-/* small toast */
-function toast(msg){
-  const t = document.createElement('div'); t.className='panel'; t.style.position='fixed'; t.style.left='50%'; t.style.transform='translateX(-50%)'; t.style.bottom='24px'; t.style.padding='10px 14px'; t.style.borderRadius='10px'; t.style.background='linear-gradient(180deg,#0b1220,#0f375e)'; t.style.color='#fff'; t.style.zIndex=9999; t.innerText=msg;
-  document.body.appendChild(t);
-  setTimeout(()=> t.style.opacity='0', 1400);
-  setTimeout(()=> t.remove(), 2000);
-}
+/* initial handlers for house thumbnails */
+document.querySelectorAll('#houses-box .house-thumb').forEach((el,i)=> el.addEventListener('click', (ev)=>{ ev.stopPropagation(); zoomTo(document.getElementById('houses-box')); setTimeout(openHousesPanel,260); }));
 
-/* init: attach extra event handlers */
-function init(){
-  document.getElementById('hospital').addEventListener('click', (e)=>e.stopPropagation());
-  // if user taps the house thumbnails, open houses panel
-  document.querySelectorAll('#houses-box .house-thumb').forEach((el,i)=> el.addEventListener('click', (ev)=>{ ev.stopPropagation(); zoomTo(document.getElementById('houses-box')); setTimeout(openHousesPanel,420); }));
-  // tap mall, school handled via hotspots
+/* init */
+function init(){ 
+  // prevent map click from immediately closing when interacting
+  document.getElementById('map').addEventListener('touchstart', ()=>{/*noop*/});
 }
 init();
 
